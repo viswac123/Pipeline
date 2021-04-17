@@ -1,20 +1,48 @@
 pipeline {
     agent any
-
     stages {
-        stage('Build') {
+        stage('Non-Parallel Stage') {
             steps {
-                echo 'Building..'
+                echo 'This stage will be executed first.'
             }
         }
-        stage('Test') {
-            steps {
-                echo 'Testing..'
+        stage('Parallel Stage') {
+            when {
+                branch 'master'
             }
-        }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying....'
+            failFast true
+            parallel {
+                stage('Branch A') {
+                    agent {
+                        label "Slave1"
+                    }
+                    steps {
+                        echo "On Branch A"
+                    }
+                }
+                stage('Branch B') {
+                    agent {
+                        label "Slave1"
+                    }
+                    steps {
+                        echo "On Branch B"
+                    }
+                }
+                stage('Branch C') {
+                    agent none
+                    stages {
+                        stage('Nested 1') {
+                            steps {
+                                echo "In stage Nested 1 within Branch C"
+                            }
+                        }
+                        stage('Nested 2') {
+                            steps {
+                                echo "In stage Nested 2 within Branch C"
+                            }
+                        }
+                    }
+                }
             }
         }
     }
